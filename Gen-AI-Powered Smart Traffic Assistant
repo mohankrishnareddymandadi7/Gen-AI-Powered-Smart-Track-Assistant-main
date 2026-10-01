@@ -1,0 +1,4689 @@
+#smart_traffic_assistant/
+
+#frontened
+#index.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenAI-Powered Smart Traffic Assistant</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #07111f;
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1250px;
+            margin: auto;
+            padding: 30px 0 60px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #9fb0c5;
+            font-size: 16px;
+        }
+
+        .card {
+            background: #101d2e;
+            border: 1px solid #23364d;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 22px;
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            font-size: 21px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 8px;
+            color: #b9c7d8;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #334a63;
+            background: #081523;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #1683ff;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        button {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 9px;
+            background: #1683ff;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #006ddd;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #loading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+            color: #9fc7ff;
+        }
+
+        #error {
+            display: none;
+            white-space: pre-line;
+            background: #3a1518;
+            border: 1px solid #a8323c;
+            color: #ffb7bd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        #results {
+            display: none;
+        }
+
+        .decision-card {
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 22px;
+            border: 1px solid #334a63;
+        }
+
+        .recommended {
+            background: #0b3020;
+            border-color: #238a58;
+        }
+
+        .caution {
+            background: #382c0a;
+            border-color: #b08a16;
+        }
+
+        .not-recommended {
+            background: #3a1518;
+            border-color: #b8323c;
+        }
+
+        .decision-status {
+            display: inline-block;
+            padding: 9px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 14px;
+        }
+
+        .green {
+            background: #146b42;
+        }
+
+        .yellow {
+            background: #806512;
+        }
+
+        .red {
+            background: #8d2630;
+        }
+
+        .decision-card h2 {
+            margin-bottom: 10px;
+        }
+
+        .decision-card p {
+            color: #d2dce8;
+            line-height: 1.6;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .result-card {
+            background: #101d2e;
+            border: 1px solid #23364d;
+            border-radius: 14px;
+            padding: 22px;
+        }
+
+        .result-card h3 {
+            margin-bottom: 16px;
+            font-size: 19px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 16px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .status.high {
+            background: #8d2630;
+        }
+
+        .status.medium {
+            background: #806512;
+        }
+
+        .status.low {
+            background: #146b42;
+        }
+
+        .status.unavailable {
+            background: #475569;
+        }
+
+        .details {
+            white-space: pre-line;
+            color: #c7d3e1;
+            line-height: 1.7;
+        }
+
+        .recommendation {
+            background: #0b1726;
+            border: 1px solid #2b425b;
+            border-radius: 10px;
+            padding: 20px;
+            line-height: 1.7;
+            color: #dbe7f3;
+        }
+
+        .recommendation h3 {
+            color: white;
+            margin: 18px 0 10px;
+        }
+
+        .recommendation strong {
+            color: white;
+        }
+
+        .recommendation ul {
+            margin: 10px 0 10px 25px;
+        }
+
+        .recommendation li {
+            margin-bottom: 6px;
+        }
+
+        .rag-item {
+            background: #0b1726;
+            border-left: 4px solid #1683ff;
+            padding: 14px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            color: #dbe7f3;
+            line-height: 1.6;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 800px) {
+            .form-grid,
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>🚦 GenAI-Powered Smart Traffic Assistant</h1>
+        <p>Intelligent route, traffic, weather and road safety analysis</p>
+    </header>
+
+    <!-- INPUT SECTION -->
+    <div class="card">
+
+        <h2>🗺️ Trip Details</h2>
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label for="source">Source</label>
+                <input
+                    id="source"
+                    type="text"
+                    placeholder="e.g. Hyderabad"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="destination">Destination</label>
+                <input
+                    id="destination"
+                    type="text"
+                    placeholder="e.g. Mumbai"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="travelDate">Travel Date</label>
+                <input id="travelDate" type="date">
+            </div>
+
+            <div class="form-group">
+                <label for="departureTime">Departure Time</label>
+                <input id="departureTime" type="time" value="08:00">
+            </div>
+
+            <div class="form-group">
+                <label for="vehicles">Vehicle Count</label>
+                <input
+                    id="vehicles"
+                    type="number"
+                    value="100"
+                    min="0"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="speed">Average Speed (km/h)</label>
+                <input
+                    id="speed"
+                    type="number"
+                    value="80"
+                    min="0"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="density">Traffic Density</label>
+                <select id="density">
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="road">Road Condition</label>
+                <select id="road">
+                    <option value="Dry">Dry</option>
+                    <option value="Wet">Wet</option>
+                    <option value="Damaged">Damaged</option>
+                    <option value="Under Construction">
+                        Under Construction
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="weatherCity">Weather City</label>
+                <input
+                    id="weatherCity"
+                    type="text"
+                    value="Hyderabad"
+                    placeholder="e.g. Hyderabad"
+                >
+            </div>
+
+        </div>
+
+        <div class="button-container">
+
+            <button
+                id="analyzeButton"
+                onclick="analyzeTrip()"
+            >
+                🔍 Analyze My Trip
+            </button>
+
+            <div id="loading">
+                ⏳ Analyzing route, traffic, weather and safety...
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="error"></div>
+
+    <!-- RESULTS -->
+    <div id="results">
+
+        <!-- TRIP SUMMARY -->
+        <div class="card">
+
+            <h2>📍 Trip Summary</h2>
+
+            <p style="margin-bottom:10px;">
+                <strong>Route:</strong>
+                <span id="tripRoute">-</span>
+            </p>
+
+            <p style="margin-bottom:10px;">
+                <strong>Departure:</strong>
+                <span id="tripTime">-</span>
+            </p>
+
+            <p>
+                <strong>Date:</strong>
+                <span id="tripDate">-</span>
+            </p>
+
+        </div>
+
+        <!-- TRAVEL DECISION -->
+        <div
+            id="travelDecisionCard"
+            class="decision-card"
+        >
+
+            <div
+                id="decisionStatus"
+                class="decision-status"
+            >
+                Travel Decision
+            </div>
+
+            <h2 id="decisionTitle">
+                Analyzing...
+            </h2>
+
+            <p id="decisionReason">
+                Please wait while the system analyzes your trip.
+            </p>
+
+        </div>
+
+        <!-- RESULT GRID -->
+        <div class="result-grid">
+
+            <!-- ROUTE -->
+            <div class="result-card">
+
+                <h3>🛣️ Route Information</h3>
+
+                <p class="details">
+
+                    <strong>Source:</strong>
+                    <span id="routeSource">-</span>
+
+                    <br>
+
+                    <strong>Destination:</strong>
+                    <span id="routeDestination">-</span>
+
+                    <br>
+
+                    <strong>Distance:</strong>
+                    <span id="routeDistance">-</span>
+
+                    <br>
+
+                    <strong>Estimated Duration:</strong>
+                    <span id="routeDuration">-</span>
+
+                </p>
+
+            </div>
+
+            <!-- TRAFFIC -->
+            <div class="result-card">
+
+                <h3>🚗 Traffic Analysis</h3>
+
+                <div
+                    id="trafficStatus"
+                    class="status unavailable"
+                >
+                    Unavailable
+                </div>
+
+                <div
+                    id="trafficDetails"
+                    class="details"
+                >
+                    No traffic information yet.
+                </div>
+
+            </div>
+
+            <!-- SOURCE WEATHER -->
+            <div class="result-card">
+
+                <h3>🌦️ Source Weather</h3>
+
+                <div
+                    id="weatherStatus"
+                    class="status unavailable"
+                >
+                    Unavailable
+                </div>
+
+                <div
+                    id="weatherDetails"
+                    class="details"
+                >
+                    No weather information yet.
+                </div>
+
+            </div>
+
+            <!-- DESTINATION WEATHER -->
+            <div class="result-card">
+
+                <h3>🏁 Destination Weather</h3>
+
+                <div
+                    id="destinationWeatherStatus"
+                    class="status unavailable"
+                >
+                    Unavailable
+                </div>
+
+                <div
+                    id="destinationWeatherDetails"
+                    class="details"
+                >
+                    No destination weather information yet.
+                </div>
+
+            </div>
+
+            <!-- ROAD -->
+            <div class="result-card">
+
+                <h3>🛤️ Road Condition</h3>
+
+                <div
+                    id="roadStatus"
+                    class="status unavailable"
+                >
+                    Unavailable
+                </div>
+
+                <div
+                    id="roadDetails"
+                    class="details"
+                >
+                    No road information yet.
+                </div>
+
+            </div>
+
+            <!-- AI RECOMMENDATION -->
+            <div class="result-card">
+
+                <h3>🤖 AI Recommendation</h3>
+
+                <div
+                    id="recommendation"
+                    class="recommendation"
+                >
+                    No recommendation yet.
+                </div>
+
+            </div>
+
+            <!-- RAG -->
+            <div class="result-card full-width">
+
+                <h3>📚 Safety Knowledge Retrieved by RAG</h3>
+
+                <div id="ragKnowledge">
+                    No relevant safety knowledge retrieved yet.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const BACKEND_URL = "http://127.0.0.1:8000";
+
+
+/* =========================================================
+   ANALYZE TRIP
+   ========================================================= */
+
+async function analyzeTrip() {
+
+    const button =
+        document.getElementById("analyzeButton");
+
+    const loading =
+        document.getElementById("loading");
+
+    const results =
+        document.getElementById("results");
+
+    const errorBox =
+        document.getElementById("error");
+
+    errorBox.style.display = "none";
+
+    loading.style.display = "block";
+
+    button.disabled = true;
+
+
+    const source =
+        document.getElementById("source").value.trim();
+
+    const destination =
+        document.getElementById("destination").value.trim();
+
+    const travelDate =
+        document.getElementById("travelDate").value;
+
+    const departureTime =
+        document.getElementById("departureTime").value;
+
+    const vehicles =
+        Number(
+            document.getElementById("vehicles").value
+        );
+
+    const speed =
+        Number(
+            document.getElementById("speed").value
+        );
+
+    const density =
+        document.getElementById("density").value;
+
+    const road =
+        document.getElementById("road").value;
+
+    const weatherCity =
+        document.getElementById("weatherCity").value.trim();
+
+
+    if (!source || !destination) {
+
+        showError(
+            "Please enter source and destination."
+        );
+
+        resetButton();
+
+        return;
+    }
+
+
+    if (!weatherCity) {
+
+        showError(
+            "Please enter the weather city."
+        );
+
+        resetButton();
+
+        return;
+    }
+
+
+    if (
+        Number.isNaN(vehicles) ||
+        vehicles < 0
+    ) {
+
+        showError(
+            "Please enter a valid vehicle count."
+        );
+
+        resetButton();
+
+        return;
+    }
+
+
+    if (
+        Number.isNaN(speed) ||
+        speed < 0
+    ) {
+
+        showError(
+            "Please enter a valid average speed."
+        );
+
+        resetButton();
+
+        return;
+    }
+
+
+    const userQuery =
+        `I plan to travel from ${source} to ${destination} ` +
+        `on ${travelDate || "the selected date"} ` +
+        `at ${departureTime || "the selected time"}. ` +
+        `Should I travel considering route, traffic, weather ` +
+        `and road conditions? Give me a safe and practical recommendation.`;
+
+
+    const requestData = {
+
+        source: source,
+
+        destination: destination,
+
+        vehicles: vehicles,
+
+        avg_speed: speed,
+
+        density: density,
+
+        road_condition: road,
+
+        weather_city: weatherCity,
+
+        user_query: userQuery
+
+    };
+
+
+    console.log(
+        "Sending request:",
+        requestData
+    );
+
+
+    try {
+
+        const response =
+            await fetch(
+                BACKEND_URL + "/assistant",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(
+                            requestData
+                        )
+                }
+            );
+
+
+        const responseText =
+            await response.text();
+
+
+        console.log(
+            "HTTP Status:",
+            response.status
+        );
+
+
+        console.log(
+            "Backend response:",
+            responseText
+        );
+
+
+        let data;
+
+
+        try {
+
+            data =
+                responseText
+                    ? JSON.parse(responseText)
+                    : null;
+
+        } catch (e) {
+
+            throw new Error(
+                "Backend returned invalid JSON."
+            );
+        }
+
+
+        if (!response.ok) {
+
+            let message =
+                `Backend returned HTTP ${response.status}`;
+
+
+            if (data && data.detail) {
+
+                message =
+                    typeof data.detail === "string"
+                        ? data.detail
+                        : JSON.stringify(
+                            data.detail
+                        );
+            }
+
+
+            throw new Error(message);
+        }
+
+
+        if (!data) {
+
+            throw new Error(
+                "Backend returned an empty response."
+            );
+        }
+
+
+        displayResults(
+
+            data,
+
+            source,
+
+            destination,
+
+            travelDate,
+
+            departureTime,
+
+            vehicles,
+
+            speed,
+
+            density,
+
+            road,
+
+            weatherCity
+
+        );
+
+
+        results.style.display = "block";
+
+
+        results.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        showError(
+            "❌ Unable to complete the request.\n\n" +
+            error.message
+        );
+
+    } finally {
+
+        resetButton();
+
+    }
+
+}
+
+
+/* =========================================================
+   DISPLAY RESULTS
+   ========================================================= */
+
+function displayResults(
+
+    data,
+
+    source,
+
+    destination,
+
+    travelDate,
+
+    departureTime,
+
+    vehicles,
+
+    speed,
+
+    density,
+
+    road,
+
+    weatherCity
+
+) {
+
+    document.getElementById(
+        "tripRoute"
+    ).innerText =
+        `${source} → ${destination}`;
+
+
+    document.getElementById(
+        "tripTime"
+    ).innerText =
+        departureTime || "-";
+
+
+    document.getElementById(
+        "tripDate"
+    ).innerText =
+        travelDate || "-";
+
+
+    /* ROUTE */
+
+    const route =
+        data.route || {};
+
+
+    document.getElementById(
+        "routeSource"
+    ).innerText =
+        route.source || source;
+
+
+    document.getElementById(
+        "routeDestination"
+    ).innerText =
+        route.destination || destination;
+
+
+    const distance =
+        Number(
+            route.distance_km
+        );
+
+
+    document.getElementById(
+        "routeDistance"
+    ).innerText =
+        Number.isFinite(distance)
+            ? `${distance.toFixed(2)} km`
+            : "Unavailable";
+
+
+    if (
+        route.duration_hours !== undefined &&
+        route.duration_hours !== null
+    ) {
+
+        const hours =
+            Number(
+                route.duration_hours
+            );
+
+
+        document.getElementById(
+            "routeDuration"
+        ).innerText =
+            Number.isFinite(hours)
+                ? `${hours.toFixed(2)} hours`
+                : "Unavailable";
+
+    }
+
+    else if (
+        route.duration_minutes !== undefined &&
+        route.duration_minutes !== null
+    ) {
+
+        document.getElementById(
+            "routeDuration"
+        ).innerText =
+            `${route.duration_minutes} minutes`;
+
+    }
+
+    else {
+
+        document.getElementById(
+            "routeDuration"
+        ).innerText =
+            "Unavailable";
+    }
+
+
+    /* TRAFFIC */
+
+    const traffic =
+        data.traffic || {};
+
+
+    const trafficStatus =
+        document.getElementById(
+            "trafficStatus"
+        );
+
+
+    const trafficLevel =
+        String(
+            traffic.level || "Unavailable"
+        );
+
+
+    trafficStatus.innerText =
+        trafficLevel;
+
+
+    trafficStatus.className =
+        "status";
+
+
+    const trafficLower =
+        trafficLevel.toLowerCase();
+
+
+    if (
+        trafficLower.includes("high")
+    ) {
+
+        trafficStatus.classList.add(
+            "high"
+        );
+
+    }
+
+    else if (
+        trafficLower.includes("medium")
+    ) {
+
+        trafficStatus.classList.add(
+            "medium"
+        );
+
+    }
+
+    else if (
+        trafficLower.includes("low")
+    ) {
+
+        trafficStatus.classList.add(
+            "low"
+        );
+
+    }
+
+    else {
+
+        trafficStatus.classList.add(
+            "unavailable"
+        );
+    }
+
+
+    document.getElementById(
+        "trafficDetails"
+    ).innerText =
+
+        `Vehicles: ${traffic.vehicles ?? vehicles}\n` +
+
+        `Average Speed: ${traffic.avg_speed ?? speed} km/h\n` +
+
+        `Density: ${traffic.density ?? density}\n` +
+
+        `Condition: ${traffic.condition ?? "Unavailable"}\n` +
+
+        `Alert: ${traffic.alert ?? "No major alert"}`;
+
+
+    /* WEATHER */
+
+    const weather =
+        data.weather || {};
+
+    const routeWeather =
+        data.route_weather || {};
+
+
+    const sourceWeather =
+        routeWeather.source || weather;
+
+
+    const weatherStatus =
+        document.getElementById(
+            "weatherStatus"
+        );
+
+
+    const weatherCondition =
+        String(
+            sourceWeather.weather ||
+            "Unavailable"
+        );
+
+
+    weatherStatus.innerText =
+        weatherCondition;
+
+
+    weatherStatus.className =
+        "status";
+
+
+    const weatherLower =
+        weatherCondition.toLowerCase();
+
+
+    if (
+        weatherLower.includes("unavailable")
+    ) {
+
+        weatherStatus.classList.add(
+            "unavailable"
+        );
+
+    }
+
+    else if (
+        weatherLower.includes("rain") ||
+        weatherLower.includes("storm") ||
+        weatherLower.includes("fog")
+    ) {
+
+        weatherStatus.classList.add(
+            "medium"
+        );
+
+    }
+
+    else {
+
+        weatherStatus.classList.add(
+            "low"
+        );
+    }
+
+
+    document.getElementById(
+        "weatherDetails"
+    ).innerText =
+
+        `Location: ${sourceWeather.city || weatherCity}\n` +
+
+        `Description: ${sourceWeather.description || "Unavailable"}\n` +
+
+        `Temperature: ${
+            sourceWeather.temperature != null
+                ? sourceWeather.temperature + " °C"
+                : "Unavailable"
+        }\n` +
+
+        `Feels Like: ${
+            sourceWeather.feels_like != null
+                ? sourceWeather.feels_like + " °C"
+                : "Unavailable"
+        }\n` +
+
+        `Humidity: ${
+            sourceWeather.humidity != null
+                ? sourceWeather.humidity + "%"
+                : "Unavailable"
+        }\n` +
+
+        `Wind Speed: ${
+            sourceWeather.wind_speed != null
+                ? sourceWeather.wind_speed + " m/s"
+                : "Unavailable"
+        }`;
+
+
+    /* DESTINATION WEATHER */
+
+    const destinationWeather =
+        routeWeather.destination || {};
+
+
+    const destinationWeatherStatus =
+        document.getElementById(
+            "destinationWeatherStatus"
+        );
+
+
+    const destinationWeatherCondition =
+        String(
+            destinationWeather.weather ||
+            "Unavailable"
+        );
+
+
+    destinationWeatherStatus.innerText =
+        destinationWeatherCondition;
+
+
+    destinationWeatherStatus.className =
+        "status";
+
+
+    const destinationWeatherLower =
+        destinationWeatherCondition.toLowerCase();
+
+
+    if (
+        destinationWeatherLower.includes(
+            "unavailable"
+        )
+    ) {
+
+        destinationWeatherStatus.classList.add(
+            "unavailable"
+        );
+
+    }
+
+    else if (
+        destinationWeatherLower.includes("rain") ||
+        destinationWeatherLower.includes("storm") ||
+        destinationWeatherLower.includes("fog")
+    ) {
+
+        destinationWeatherStatus.classList.add(
+            "medium"
+        );
+
+    }
+
+    else {
+
+        destinationWeatherStatus.classList.add(
+            "low"
+        );
+    }
+
+
+    document.getElementById(
+        "destinationWeatherDetails"
+    ).innerText =
+
+        `Location: ${
+            destinationWeather.city ||
+            destination ||
+            "Unavailable"
+        }\n` +
+
+        `Description: ${
+            destinationWeather.description ||
+            "Unavailable"
+        }\n` +
+
+        `Temperature: ${
+            destinationWeather.temperature != null
+                ? destinationWeather.temperature + " °C"
+                : "Unavailable"
+        }\n` +
+
+        `Feels Like: ${
+            destinationWeather.feels_like != null
+                ? destinationWeather.feels_like + " °C"
+                : "Unavailable"
+        }\n` +
+
+        `Humidity: ${
+            destinationWeather.humidity != null
+                ? destinationWeather.humidity + "%"
+                : "Unavailable"
+        }\n` +
+
+        `Wind Speed: ${
+            destinationWeather.wind_speed != null
+                ? destinationWeather.wind_speed + " m/s"
+                : "Unavailable"
+        }`;
+
+
+    /* ROAD */
+
+    const roadCondition =
+        traffic.road_condition ||
+        road ||
+        "Unavailable";
+
+
+    const roadStatus =
+        document.getElementById(
+            "roadStatus"
+        );
+
+
+    roadStatus.innerText =
+        roadCondition;
+
+
+    roadStatus.className =
+        "status";
+
+
+    const roadLower =
+        roadCondition.toLowerCase();
+
+
+    if (
+        roadLower.includes("damaged") ||
+        roadLower.includes("under construction")
+    ) {
+
+        roadStatus.classList.add(
+            "high"
+        );
+
+    }
+
+    else if (
+        roadLower.includes("wet") ||
+        roadLower.includes("damp")
+    ) {
+
+        roadStatus.classList.add(
+            "medium"
+        );
+
+    }
+
+    else if (
+        roadLower.includes("unavailable")
+    ) {
+
+        roadStatus.classList.add(
+            "unavailable"
+        );
+
+    }
+
+    else {
+
+        roadStatus.classList.add(
+            "low"
+        );
+    }
+
+
+    document.getElementById(
+        "roadDetails"
+    ).innerText =
+
+        traffic.condition ||
+        "Road condition information available.";
+
+
+    /*
+       IMPORTANT:
+       This function now determines the
+       GREEN / YELLOW / RED decision.
+    */
+
+    updateTravelDecision(
+        traffic,
+        roadCondition,
+        weatherCondition
+    );
+
+
+    /* AI RECOMMENDATION */
+
+    let recommendation =
+        data.ai_recommendation ||
+        data.recommendation ||
+        "No AI recommendation returned.";
+
+
+    document.getElementById(
+        "recommendation"
+    ).innerHTML =
+        formatRecommendation(
+            String(recommendation)
+        );
+
+
+    /* RAG */
+
+    const ragContainer =
+        document.getElementById(
+            "ragKnowledge"
+        );
+
+
+    ragContainer.innerHTML = "";
+
+
+    const rag =
+        Array.isArray(
+            data.rag_knowledge
+        )
+            ? data.rag_knowledge
+            : [];
+
+
+    if (
+        rag.length === 0
+    ) {
+
+        ragContainer.innerText =
+            "No relevant safety knowledge retrieved.";
+
+    }
+
+    else {
+
+        rag.forEach(
+            function(item) {
+
+                const div =
+                    document.createElement(
+                        "div"
+                    );
+
+                div.className =
+                    "rag-item";
+
+                div.innerText =
+                    String(item);
+
+                ragContainer.appendChild(
+                    div
+                );
+            }
+        );
+    }
+
+}
+
+
+/* =========================================================
+   TRAVEL DECISION
+   ========================================================= */
+
+function updateTravelDecision(
+    traffic,
+    roadCondition,
+    weatherCondition
+) {
+
+    const card =
+        document.getElementById(
+            "travelDecisionCard"
+        );
+
+    const status =
+        document.getElementById(
+            "decisionStatus"
+        );
+
+    const title =
+        document.getElementById(
+            "decisionTitle"
+        );
+
+    const reason =
+        document.getElementById(
+            "decisionReason"
+        );
+
+
+    /*
+       Normalize values.
+    */
+
+    const trafficLevel =
+        String(
+            traffic.level || ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+    const road =
+        String(
+            roadCondition || ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+    const weather =
+        String(
+            weatherCondition || ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+    /*
+       Traffic conditions
+    */
+
+    const highTraffic =
+        trafficLevel === "high";
+
+
+    const mediumTraffic =
+        trafficLevel === "medium";
+
+
+    const lowTraffic =
+        trafficLevel === "low";
+
+
+    /*
+       Road conditions
+    */
+
+    const badRoad =
+        road.includes("damaged") ||
+        road.includes("under construction");
+
+
+    const wetRoad =
+        road.includes("wet") ||
+        road.includes("damp");
+
+
+    /*
+       Weather conditions
+    */
+
+    const badWeather =
+        weather.includes("rain") ||
+        weather.includes("storm") ||
+        weather.includes("fog") ||
+        weather.includes("snow");
+
+
+    /*
+    ==========================================================
+       CASE 1 — SAFE
+    ==========================================================
+    */
+
+    if (
+        lowTraffic &&
+        !badRoad &&
+        !wetRoad &&
+        !badWeather
+    ) {
+
+        card.className =
+            "decision-card recommended";
+
+
+        status.className =
+            "decision-status green";
+
+
+        status.innerText =
+            "🟢 TRAVEL RECOMMENDED";
+
+
+        title.innerText =
+            "Current conditions are favorable";
+
+
+        reason.innerText =
+            "Traffic is low and the available road and weather " +
+            "conditions do not indicate a major travel risk. " +
+            "Normal safe-driving practices are recommended.";
+
+
+        return;
+    }
+
+
+    /*
+    ==========================================================
+       CASE 3 — DANGEROUS
+    ==========================================================
+    */
+
+    if (
+        badRoad ||
+        (
+            highTraffic &&
+            (
+                wetRoad ||
+                badWeather
+            )
+        )
+    ) {
+
+        card.className =
+            "decision-card not-recommended";
+
+
+        status.className =
+            "decision-status red";
+
+
+        status.innerText =
+            "🔴 TRAVEL NOT RECOMMENDED";
+
+
+        title.innerText =
+            "Current conditions are unfavorable";
+
+
+        if (badRoad) {
+
+            reason.innerText =
+                "The road condition is unsafe. " +
+                "Consider delaying your journey or using " +
+                "an alternative route.";
+
+        }
+
+        else {
+
+            reason.innerText =
+                "High traffic congestion is combined with " +
+                "unfavorable road or weather conditions. " +
+                "Consider delaying your journey.";
+        }
+
+
+        return;
+    }
+
+
+    /*
+    ==========================================================
+       CASE 2 — MODERATE
+    ==========================================================
+    */
+
+    card.className =
+        "decision-card caution";
+
+
+    status.className =
+        "decision-status yellow";
+
+
+    status.innerText =
+        "🟡 TRAVEL WITH CAUTION";
+
+
+    title.innerText =
+        "Travel is possible with additional caution";
+
+
+    reason.innerText =
+        "Current conditions show elevated travel risk. " +
+        "Allow additional time, maintain a safe following " +
+        "distance and drive carefully.";
+
+}
+
+
+/* =========================================================
+   FORMAT AI RECOMMENDATION
+   ========================================================= */
+
+function formatRecommendation(text) {
+
+    let html =
+        escapeHTML(text);
+
+
+    /*
+       Headings
+    */
+
+    html =
+        html.replace(
+            /^###\s+(.+)$/gm,
+            "<h3>$1</h3>"
+        );
+
+
+    html =
+        html.replace(
+            /^##\s+(.+)$/gm,
+            "<h3>$1</h3>"
+        );
+
+
+    html =
+        html.replace(
+            /^#\s+(.+)$/gm,
+            "<h3>$1</h3>"
+        );
+
+
+    /*
+       Bold
+    */
+
+    html =
+        html.replace(
+            /\*\*(.*?)\*\*/g,
+            "<strong>$1</strong>"
+        );
+
+
+    /*
+       Italic
+    */
+
+    html =
+        html.replace(
+            /(?<!\*)\*([^*\n]+)\*(?!\*)/g,
+            "<em>$1</em>"
+        );
+
+
+    /*
+       Bullet points
+    */
+
+    html =
+        html.replace(
+            /^\s*[-*]\s+(.+)$/gm,
+            "<li>$1</li>"
+        );
+
+
+    /*
+       Numbered points
+    */
+
+    html =
+        html.replace(
+            /^\s*\d+\.\s+(.+)$/gm,
+            "<li>$1</li>"
+        );
+
+
+    /*
+       Convert consecutive li elements into ul.
+    */
+
+    html =
+        html.replace(
+            /((?:<li>.*?<\/li>\s*)+)/gs,
+            "<ul>$1</ul>"
+        );
+
+
+    /*
+       Line breaks
+    */
+
+    html =
+        html.replace(
+            /\n{2,}/g,
+            "<br><br>"
+        );
+
+
+    html =
+        html.replace(
+            /\n/g,
+            "<br>"
+        );
+
+
+    return html;
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+   ========================================================= */
+
+function escapeHTML(text) {
+
+    return String(text)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+}
+
+
+/* =========================================================
+   SHOW ERROR
+   ========================================================= */
+
+function showError(message) {
+
+    const error =
+        document.getElementById(
+            "error"
+        );
+
+
+    error.innerText =
+        message;
+
+
+    error.style.display =
+        "block";
+}
+
+
+/* =========================================================
+   RESET BUTTON
+   ========================================================= */
+
+function resetButton() {
+
+    const button =
+        document.getElementById(
+            "analyzeButton"
+        );
+
+
+    const loading =
+        document.getElementById(
+            "loading"
+        );
+
+
+    button.disabled =
+        false;
+
+
+    loading.style.display =
+        "none";
+}
+
+
+/* =========================================================
+   SET TODAY'S DATE
+   ========================================================= */
+
+window.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        const dateInput =
+            document.getElementById(
+                "travelDate"
+            );
+
+
+        const today =
+            new Date();
+
+
+        const year =
+            today.getFullYear();
+
+
+        const month =
+            String(
+                today.getMonth() + 1
+            )
+            .padStart(2, "0");
+
+
+        const day =
+            String(
+                today.getDate()
+            )
+            .padStart(2, "0");
+
+
+        dateInput.value =
+            `${year}-${month}-${day}`;
+    }
+);
+
+</script>
+
+</body>
+</html>
+```
+
+#style.css  
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #07111f;
+    color: #ffffff;
+    padding: 30px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+header p {
+    color: #9fb3c8;
+}
+
+.card {
+    background: #101d2d;
+    border: 1px solid #24364d;
+    border-radius: 14px;
+    padding: 25px;
+    margin-bottom: 20px;
+}
+
+.card h2 {
+    margin-bottom: 20px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+label {
+    color: #b9c8d8;
+    font-size: 14px;
+}
+
+input,
+select {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #344b63;
+    background: #081522;
+    color: white;
+    font-size: 15px;
+}
+
+button {
+    width: 100%;
+    margin-top: 25px;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.loading {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+    color: #60a5fa;
+}
+
+.error {
+    display: none;
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    background: #3b1111;
+    border: 1px solid #ef4444;
+    color: #ffb4b4;
+    white-space: pre-wrap;
+}
+
+.summary-grid,
+.result-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.summary-grid div,
+.result-grid div {
+    background: #0a1726;
+    padding: 18px;
+    border-radius: 10px;
+}
+
+.summary-grid span,
+.result-grid span {
+    display: block;
+    color: #8fa4ba;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.summary-grid strong,
+.result-grid strong {
+    font-size: 18px;
+}
+
+.status {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.status.high {
+    background: #7f1d1d;
+}
+
+.status.medium {
+    background: #854d0e;
+}
+
+.status.low {
+    background: #166534;
+}
+
+.status.unavailable {
+    background: #374151;
+}
+
+pre {
+    white-space: pre-wrap;
+    line-height: 1.7;
+    color: #d4deea;
+}
+
+.decision-card {
+    padding: 25px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+    border: 1px solid #334155;
+}
+
+.decision-card.recommended {
+    background: #052e16;
+}
+
+.decision-card.caution {
+    background: #422006;
+}
+
+.decision-card.not-recommended {
+    background: #450a0a;
+}
+
+.decision-status {
+    display: inline-block;
+    padding: 8px 15px;
+    border-radius: 20px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.decision-status.green {
+    background: #166534;
+}
+
+.decision-status.yellow {
+    background: #854d0e;
+}
+
+.decision-status.red {
+    background: #991b1b;
+}
+
+.decision-card p {
+    margin-top: 10px;
+    line-height: 1.7;
+    color: #d1d5db;
+}
+
+.recommendation {
+    line-height: 1.8;
+    color: #dbeafe;
+}
+
+.rag-item {
+    padding: 15px;
+    margin-bottom: 10px;
+    border-left: 4px solid #2563eb;
+    background: #0a1726;
+    border-radius: 6px;
+    line-height: 1.6;
+}
+
+@media (max-width: 800px) {
+
+    .grid,
+    .summary-grid,
+    .result-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body {
+        padding: 15px;
+    }
+
+    header h1 {
+        font-size: 24px;
+    }
+}
+#script.js
+
+const BACKEND_URL = "http://127.0.0.1:8000";
+
+// ============================================================
+// ANALYZE TRIP
+// ============================================================
+
+async function analyzeTrip() {
+    const button = document.getElementById("analyzeButton");
+    const loading = document.getElementById("loading");
+    const results = document.getElementById("results");
+    const errorBox = document.getElementById("error");
+
+    if (!button || !loading || !results || !errorBox) {
+        console.error("Required HTML elements are missing.");
+        return;
+    }
+
+    errorBox.style.display = "none";
+    loading.style.display = "block";
+    button.disabled = true;
+
+    const source = document.getElementById("source")?.value.trim() || "";
+    const destination = document.getElementById("destination")?.value.trim() || "";
+    const travelDate = document.getElementById("travelDate")?.value || "";
+    const departureTime = document.getElementById("departureTime")?.value || "";
+
+    const vehicles = Number(
+        document.getElementById("vehicles")?.value || 0
+    );
+
+    const speed = Number(
+        document.getElementById("speed")?.value || 0
+    );
+
+    const density =
+        document.getElementById("density")?.value || "Low";
+
+    const road =
+        document.getElementById("road")?.value || "Dry";
+
+    const weatherCity =
+        document.getElementById("weatherCity")?.value.trim() || "";
+
+    // Validation
+    if (!source || !destination) {
+        showError("Please enter source and destination.");
+        resetButton();
+        return;
+    }
+
+    if (!weatherCity) {
+        showError("Please enter the weather city.");
+        resetButton();
+        return;
+    }
+
+    if (Number.isNaN(vehicles) || vehicles < 0) {
+        showError("Please enter a valid vehicle count.");
+        resetButton();
+        return;
+    }
+
+    if (Number.isNaN(speed) || speed < 0) {
+        showError("Please enter a valid average speed.");
+        resetButton();
+        return;
+    }
+
+    const userQuery =
+        `I plan to travel from ${source} to ${destination} ` +
+        `on ${travelDate || "the selected date"} ` +
+        `at ${departureTime || "the selected time"}. ` +
+        `Should I travel considering route, traffic, weather ` +
+        `and road conditions? Give me a safe and practical recommendation.`;
+
+    const requestData = {
+        source: source,
+        destination: destination,
+        vehicles: vehicles,
+        avg_speed: speed,
+        density: density,
+        road_condition: road,
+        weather_city: weatherCity,
+        user_query: userQuery
+    };
+
+    console.log("SMART TRAFFIC ASSISTANT REQUEST");
+    console.log("Backend:", BACKEND_URL);
+    console.log("Request:", requestData);
+
+    try {
+        const response = await fetch(
+            BACKEND_URL + "/assistant",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(requestData)
+            }
+        );
+
+        const responseText = await response.text();
+
+        console.log("HTTP Status:", response.status);
+        console.log("Backend response:", responseText);
+
+        let data = null;
+
+        try {
+            data = responseText
+                ? JSON.parse(responseText)
+                : null;
+        } catch (jsonError) {
+            throw new Error(
+                "Backend returned invalid JSON:\n\n" +
+                responseText
+            );
+        }
+
+        if (!response.ok) {
+            let message =
+                `Backend returned HTTP ${response.status}`;
+
+            if (data && data.detail) {
+                message =
+                    typeof data.detail === "string"
+                        ? data.detail
+                        : JSON.stringify(data.detail, null, 2);
+            }
+
+            throw new Error(message);
+        }
+
+        if (!data) {
+            throw new Error(
+                "Backend returned an empty response."
+            );
+        }
+
+        displayResults(
+            data,
+            source,
+            destination,
+            travelDate,
+            departureTime,
+            vehicles,
+            speed,
+            density,
+            road,
+            weatherCity
+        );
+
+        results.style.display = "block";
+
+        results.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+        console.log(
+            "Trip analysis completed successfully."
+        );
+
+    } catch (error) {
+        console.error(
+            "SMART TRAFFIC ASSISTANT ERROR:",
+            error
+        );
+
+        let message =
+            "Unable to complete the request.\n\n";
+
+        if (
+            error instanceof TypeError &&
+            String(error.message)
+                .toLowerCase()
+                .includes("fetch")
+        ) {
+            message +=
+                "The browser could not connect to FastAPI.\n\n" +
+                "Make sure Terminal 1 is running the backend at:\n" +
+                BACKEND_URL +
+                "\n\nOpen:\n" +
+                BACKEND_URL +
+                "/docs";
+        } else {
+            message += error.message;
+        }
+
+        showError(message);
+
+    } finally {
+        resetButton();
+    }
+}
+
+
+// ============================================================
+// DISPLAY RESULTS
+// ============================================================
+
+function displayResults(
+    data,
+    source,
+    destination,
+    travelDate,
+    departureTime,
+    vehicles,
+    speed,
+    density,
+    road,
+    weatherCity
+) {
+
+    // Trip Summary
+    setText(
+        "tripRoute",
+        `${source} → ${destination}`
+    );
+
+    setText(
+        "tripTime",
+        departureTime || "-"
+    );
+
+    setText(
+        "tripDate",
+        travelDate || "-"
+    );
+
+
+    // Route
+    const route = data.route || {};
+
+    setText(
+        "routeSource",
+        route.source || source
+    );
+
+    setText(
+        "routeDestination",
+        route.destination || destination
+    );
+
+    const distance = Number(route.distance_km);
+
+    setText(
+        "routeDistance",
+        Number.isFinite(distance)
+            ? `${distance.toFixed(2)} km`
+            : "Unavailable"
+    );
+
+    if (
+        route.duration_hours !== undefined &&
+        route.duration_hours !== null
+    ) {
+
+        const hours = Number(
+            route.duration_hours
+        );
+
+        setText(
+            "routeDuration",
+            Number.isFinite(hours)
+                ? `${hours.toFixed(2)} hours`
+                : "Unavailable"
+        );
+
+    } else if (
+        route.duration_minutes !== undefined &&
+        route.duration_minutes !== null
+    ) {
+
+        setText(
+            "routeDuration",
+            `${route.duration_minutes} minutes`
+        );
+
+    } else {
+
+        setText(
+            "routeDuration",
+            "Unavailable"
+        );
+    }
+
+
+    // ========================================================
+    // TRAFFIC
+    // ========================================================
+
+    const traffic = data.traffic || {};
+
+    const trafficLevel =
+        String(
+            traffic.level || "Unavailable"
+        );
+
+    const trafficStatus =
+        document.getElementById("trafficStatus");
+
+    if (trafficStatus) {
+
+        trafficStatus.innerText =
+            trafficLevel;
+
+        trafficStatus.className =
+            "status";
+
+        const lower =
+            trafficLevel.toLowerCase();
+
+        if (lower.includes("high")) {
+            trafficStatus.classList.add("high");
+        } else if (lower.includes("medium")) {
+            trafficStatus.classList.add("medium");
+        } else if (lower.includes("low")) {
+            trafficStatus.classList.add("low");
+        } else {
+            trafficStatus.classList.add("unavailable");
+        }
+    }
+
+    setText(
+        "trafficDetails",
+
+        `Vehicles: ${traffic.vehicles ?? vehicles}\n` +
+        `Average Speed: ${traffic.avg_speed ?? speed} km/h\n` +
+        `Density: ${traffic.density ?? density}\n` +
+        `Condition: ${traffic.condition ?? "Unavailable"}\n` +
+        `Alert: ${traffic.alert ?? "No major alert"}`
+    );
+
+
+    // ========================================================
+    // WEATHER
+    // ========================================================
+
+    const weather =
+        data.weather || {};
+
+    const routeWeather =
+        data.route_weather || {};
+
+    const sourceWeather =
+        routeWeather.source || weather;
+
+    const weatherCondition =
+        String(
+            sourceWeather.weather ||
+            "Unavailable"
+        );
+
+    const weatherStatus =
+        document.getElementById(
+            "weatherStatus"
+        );
+
+    if (weatherStatus) {
+
+        weatherStatus.innerText =
+            weatherCondition;
+
+        weatherStatus.className =
+            "status";
+
+        const weatherLower =
+            weatherCondition.toLowerCase();
+
+        if (weatherLower.includes("unavailable")) {
+
+            weatherStatus.classList.add(
+                "unavailable"
+            );
+
+        } else if (
+            weatherLower.includes("rain") ||
+            weatherLower.includes("storm") ||
+            weatherLower.includes("fog")
+        ) {
+
+            weatherStatus.classList.add(
+                "medium"
+            );
+
+        } else {
+
+            weatherStatus.classList.add(
+                "low"
+            );
+        }
+    }
+
+    setText(
+        "weatherDetails",
+
+        `Location: ${sourceWeather.city || weatherCity}\n` +
+        `Description: ${sourceWeather.description || "Unavailable"}\n` +
+        `Temperature: ${
+            sourceWeather.temperature != null
+                ? sourceWeather.temperature + " °C"
+                : "Unavailable"
+        }\n` +
+        `Feels Like: ${
+            sourceWeather.feels_like != null
+                ? sourceWeather.feels_like + " °C"
+                : "Unavailable"
+        }\n` +
+        `Humidity: ${
+            sourceWeather.humidity != null
+                ? sourceWeather.humidity + "%"
+                : "Unavailable"
+        }\n` +
+        `Wind Speed: ${
+            sourceWeather.wind_speed != null
+                ? sourceWeather.wind_speed + " m/s"
+                : "Unavailable"
+        }`
+    );
+
+
+    // ========================================================
+    // DESTINATION WEATHER
+    // ========================================================
+
+    const destinationWeather =
+        routeWeather.destination || {};
+
+    const destinationWeatherCondition =
+        String(
+            destinationWeather.weather ||
+            "Unavailable"
+        );
+
+    const destinationWeatherStatus =
+        document.getElementById(
+            "destinationWeatherStatus"
+        );
+
+    if (destinationWeatherStatus) {
+
+        destinationWeatherStatus.innerText =
+            destinationWeatherCondition;
+
+        destinationWeatherStatus.className =
+            "status";
+
+        const lower =
+            destinationWeatherCondition.toLowerCase();
+
+        if (lower.includes("unavailable")) {
+
+            destinationWeatherStatus.classList.add(
+                "unavailable"
+            );
+
+        } else if (
+            lower.includes("rain") ||
+            lower.includes("storm") ||
+            lower.includes("fog")
+        ) {
+
+            destinationWeatherStatus.classList.add(
+                "medium"
+            );
+
+        } else {
+
+            destinationWeatherStatus.classList.add(
+                "low"
+            );
+        }
+    }
+
+    setText(
+        "destinationWeatherDetails",
+
+        `Location: ${
+            destinationWeather.city ||
+            destination ||
+            "Unavailable"
+        }\n` +
+
+        `Description: ${
+            destinationWeather.description ||
+            "Unavailable"
+        }\n` +
+
+        `Temperature: ${
+            destinationWeather.temperature != null
+                ? destinationWeather.temperature + " °C"
+                : "Unavailable"
+        }\n` +
+
+        `Feels Like: ${
+            destinationWeather.feels_like != null
+                ? destinationWeather.feels_like + " °C"
+                : "Unavailable"
+        }\n` +
+
+        `Humidity: ${
+            destinationWeather.humidity != null
+                ? destinationWeather.humidity + "%"
+                : "Unavailable"
+        }\n` +
+
+        `Wind Speed: ${
+            destinationWeather.wind_speed != null
+                ? destinationWeather.wind_speed + " m/s"
+                : "Unavailable"
+        }`
+    );
+
+
+    // ========================================================
+    // ROAD CONDITION
+    // ========================================================
+
+    const roadCondition =
+        traffic.road_condition ||
+        road ||
+        "Unavailable";
+
+    const roadStatus =
+        document.getElementById(
+            "roadStatus"
+        );
+
+    if (roadStatus) {
+
+        roadStatus.innerText =
+            roadCondition;
+
+        roadStatus.className =
+            "status";
+
+        const lower =
+            roadCondition.toLowerCase();
+
+        if (lower.includes("damaged")) {
+
+            roadStatus.classList.add("high");
+
+        } else if (lower.includes("wet")) {
+
+            roadStatus.classList.add("medium");
+
+        } else if (
+            lower.includes("unavailable")
+        ) {
+
+            roadStatus.classList.add(
+                "unavailable"
+            );
+
+        } else {
+
+            roadStatus.classList.add("low");
+        }
+    }
+
+    setText(
+        "roadDetails",
+        traffic.condition ||
+        "Road condition information available."
+    );
+
+
+    // ========================================================
+    // TRAVEL DECISION
+    // ========================================================
+
+    updateTravelDecision(
+        traffic,
+        roadCondition,
+        weatherCondition
+    );
+
+
+    // ========================================================
+    // AI RECOMMENDATION
+    // ========================================================
+
+    let recommendation =
+        data.ai_recommendation ||
+        data.recommendation ||
+        "No AI recommendation returned.";
+
+    recommendation =
+        String(recommendation);
+
+    const lowerRecommendation =
+        recommendation.toLowerCase();
+
+    const geminiQuotaError =
+        lowerRecommendation.includes("429") ||
+        lowerRecommendation.includes("resource_exhausted") ||
+        lowerRecommendation.includes("quota exceeded") ||
+        lowerRecommendation.includes(
+            "generate_content_free_tier_requests"
+        );
+
+    if (geminiQuotaError) {
+
+        recommendation =
+            "The route, traffic and RAG safety analysis " +
+            "was completed successfully.\n\n" +
+
+            "Gemini AI recommendation is temporarily " +
+            "unavailable because the Gemini free-tier quota " +
+            "has been exceeded.\n\n" +
+
+            "The rest of the dashboard is working normally.";
+    }
+
+    const recommendationBox =
+        document.getElementById(
+            "recommendation"
+        );
+
+    if (recommendationBox) {
+
+        recommendationBox.innerHTML =
+            formatRecommendation(
+                recommendation
+            );
+    }
+
+
+    // ========================================================
+    // RAG KNOWLEDGE
+    // ========================================================
+
+    const ragContainer =
+        document.getElementById(
+            "ragKnowledge"
+        );
+
+    if (!ragContainer) {
+        return;
+    }
+
+    ragContainer.innerHTML = "";
+
+    const rag =
+        Array.isArray(data.rag_knowledge)
+            ? data.rag_knowledge
+            : [];
+
+    if (rag.length === 0) {
+
+        ragContainer.innerText =
+            "No relevant safety knowledge retrieved.";
+
+    } else {
+
+        rag.forEach(function(item) {
+
+            const div =
+                document.createElement("div");
+
+            div.className =
+                "rag-item";
+
+            div.innerText =
+                String(item);
+
+            ragContainer.appendChild(div);
+        });
+    }
+}
+
+
+// ============================================================
+// TRAVEL DECISION
+// ============================================================
+
+function updateTravelDecision(
+    traffic,
+    roadCondition,
+    weatherCondition
+) {
+
+    const card =
+        document.getElementById(
+            "travelDecisionCard"
+        );
+
+    const status =
+        document.getElementById(
+            "decisionStatus"
+        );
+
+    const title =
+        document.getElementById(
+            "decisionTitle"
+        );
+
+    const reason =
+        document.getElementById(
+            "decisionReason"
+        );
+
+    if (!card || !status || !title || !reason) {
+        console.warn(
+            "Travel decision HTML elements are missing."
+        );
+        return;
+    }
+
+    const trafficLevel =
+        String(
+            traffic.level || ""
+        ).toLowerCase();
+
+    const road =
+        String(
+            roadCondition || ""
+        ).toLowerCase();
+
+    const weather =
+        String(
+            weatherCondition || ""
+        ).toLowerCase();
+
+    const highTraffic =
+        trafficLevel.includes("high");
+
+    const mediumTraffic =
+        trafficLevel.includes("medium");
+
+    const badRoad =
+        road.includes("damaged");
+
+    const wetRoad =
+        road.includes("wet");
+
+    const badWeather =
+        weather.includes("rain") ||
+        weather.includes("storm") ||
+        weather.includes("fog");
+
+
+    // NOT RECOMMENDED
+
+    if (
+        badRoad ||
+        (
+            highTraffic &&
+            (
+                wetRoad ||
+                badWeather
+            )
+        )
+    ) {
+
+        card.className =
+            "decision-card not-recommended";
+
+        status.className =
+            "decision-status red";
+
+        status.innerText =
+            "TRAVEL NOT RECOMMENDED";
+
+        title.innerText =
+            "Current conditions are unfavorable";
+
+        if (badRoad) {
+
+            reason.innerText =
+                "The road is reported as damaged. " +
+                "Avoid unsafe road sections and " +
+                "consider an alternative route.";
+
+        } else {
+
+            reason.innerText =
+                "High traffic congestion is combined " +
+                "with unfavorable road or weather " +
+                "conditions. Consider delaying your journey.";
+        }
+
+        return;
+    }
+
+
+    // CAUTION
+
+    if (
+        highTraffic ||
+        mediumTraffic ||
+        wetRoad ||
+        badWeather
+    ) {
+
+        card.className =
+            "decision-card caution";
+
+        status.className =
+            "decision-status yellow";
+
+        status.innerText =
+            "TRAVEL WITH CAUTION";
+
+        title.innerText =
+            "Travel is possible with additional caution";
+
+        reason.innerText =
+            "Current conditions show elevated travel risk. " +
+            "Allow additional time, maintain a safe following " +
+            "distance and drive carefully.";
+
+        return;
+    }
+
+
+    // RECOMMENDED
+
+    card.className =
+        "decision-card recommended";
+
+    status.className =
+        "decision-status green";
+
+    status.innerText =
+        "TRAVEL RECOMMENDED";
+
+    title.innerText =
+        "Current conditions are favorable";
+
+    reason.innerText =
+        "The available traffic, road and weather information " +
+        "does not indicate a major travel restriction. " +
+        "Normal safe-driving practices are recommended.";
+}
+
+
+// ============================================================
+// FORMAT AI RECOMMENDATION
+// ============================================================
+
+function formatRecommendation(text) {
+
+    let html =
+        escapeHTML(text);
+
+    // Headings
+    html = html.replace(
+        /^###\s+(.+)$/gm,
+        "<h3>$1</h3>"
+    );
+
+    html = html.replace(
+        /^##\s+(.+)$/gm,
+        "<h3>$1</h3>"
+    );
+
+    html = html.replace(
+        /^#\s+(.+)$/gm,
+        "<h3>$1</h3>"
+    );
+
+    // Bold
+    html = html.replace(
+        /\*\*(.*?)\*\*/g,
+        "<strong>$1</strong>"
+    );
+
+    // Italic
+    html = html.replace(
+        /(?<!\*)\*([^*\n]+)\*(?!\*)/g,
+        "<em>$1</em>"
+    );
+
+    // Bullet points
+    html = html.replace(
+        /^\s*[-*]\s+(.+)$/gm,
+        "<li>$1</li>"
+    );
+
+    // Numbered points
+    html = html.replace(
+        /^\s*\d+\.\s+(.+)$/gm,
+        "<li>$1</li>"
+    );
+
+    // Wrap lists
+    html = html.replace(
+        /((?:<li>.*?<\/li>\s*)+)/gs,
+        "<ul>$1</ul>"
+    );
+
+    // Paragraph spacing
+    html = html.replace(
+        /\n{2,}/g,
+        "<br><br>"
+    );
+
+    // Single line breaks
+    html = html.replace(
+        /\n/g,
+        "<br>"
+    );
+
+    return html;
+}
+
+
+// ============================================================
+// ESCAPE HTML
+// ============================================================
+
+function escapeHTML(text) {
+
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+// ============================================================
+// SAFE TEXT SETTER
+// ============================================================
+
+function setText(id, value) {
+
+    const element =
+        document.getElementById(id);
+
+    if (element) {
+        element.innerText =
+            value;
+    } else {
+        console.warn(
+            `HTML element not found: #${id}`
+        );
+    }
+}
+
+
+// ============================================================
+// SHOW ERROR
+// ============================================================
+
+function showError(message) {
+
+    const error =
+        document.getElementById(
+            "error"
+        );
+
+    if (!error) {
+        console.error(message);
+        return;
+    }
+
+    error.innerText =
+        message;
+
+    error.style.display =
+        "block";
+}
+
+
+// ============================================================
+// RESET BUTTON
+// ============================================================
+
+function resetButton() {
+
+    const button =
+        document.getElementById(
+            "analyzeButton"
+        );
+
+    const loading =
+        document.getElementById(
+            "loading"
+        );
+
+    if (button) {
+        button.disabled =
+            false;
+    }
+
+    if (loading) {
+        loading.style.display =
+            "none";
+    }
+}
+
+
+// ============================================================
+// DEFAULT DATE
+// ============================================================
+
+window.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const dateInput =
+            document.getElementById(
+                "travelDate"
+            );
+
+        if (!dateInput) {
+            return;
+        }
+
+        const today =
+            new Date();
+
+        const year =
+            today.getFullYear();
+
+        const month =
+            String(
+                today.getMonth() + 1
+            ).padStart(2, "0");
+
+        const day =
+            String(
+                today.getDate()
+            ).padStart(2, "0");
+
+        dateInput.value =
+            `${year}-${month}-${day}`;
+    }
+);
+
+#src
+#main.py
+"""
+GenAI-Powered Smart Traffic Assistant
+FastAPI Backend
+
+Services:
+- Traffic Analysis
+- OpenWeather
+- OpenRouteService
+- RAG
+- Gemini
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+
+from src.traffic_analysis import analyze_traffic
+from src.rag import retrieve_relevant_chunks
+from src.llm import generate_response
+from src.weather import get_weather, get_route_weather
+from src.route import get_route
+
+
+# =========================================================
+# FASTAPI APPLICATION
+# =========================================================
+
+app = FastAPI(
+    title="GenAI-Powered Smart Traffic Assistant",
+    description=(
+        "AI travel decision-support assistant using "
+        "traffic, weather, routing, RAG and Gemini"
+    ),
+    version="1.0.0"
+)
+
+
+# =========================================================
+# CORS
+# =========================================================
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# =========================================================
+# REQUEST MODEL
+# =========================================================
+
+class TrafficRequest(BaseModel):
+
+    source: str = Field(
+        ...,
+        min_length=1,
+        description="Starting location"
+    )
+
+    destination: str = Field(
+        ...,
+        min_length=1,
+        description="Destination location"
+    )
+
+    vehicles: int = Field(
+        default=50,
+        ge=0,
+        description="Number of vehicles"
+    )
+
+    avg_speed: float = Field(
+        default=30,
+        ge=0,
+        description="Average vehicle speed in km/h"
+    )
+
+    density: str = Field(
+        default="Medium",
+        description="Traffic density"
+    )
+
+    road_condition: str = Field(
+        default="Dry",
+        description="Road condition"
+    )
+
+    weather_city: str = Field(
+        default="Hyderabad",
+        description="City used for weather information"
+    )
+
+    user_query: str = Field(
+        default=(
+            "What is the best travel recommendation "
+            "for this route?"
+        )
+    )
+
+
+# =========================================================
+# HOME ENDPOINT
+# =========================================================
+
+@app.get("/")
+def home():
+
+    return {
+        "status": "success",
+        "message": (
+            "GenAI-Powered Smart Traffic Assistant "
+            "is running"
+        )
+    }
+
+
+# =========================================================
+# HEALTH CHECK
+# =========================================================
+
+@app.get("/health")
+def health():
+
+    return {
+        "status": "healthy",
+        "services": [
+            "Traffic Analysis",
+            "RAG",
+            "Gemini",
+            "OpenWeather",
+            "OpenRoute"
+        ]
+    }
+
+
+# =========================================================
+# WEATHER ENDPOINT
+# =========================================================
+
+@app.get("/weather")
+def weather(city: str = "Hyderabad"):
+
+    try:
+
+        weather_data = get_weather(city)
+
+        return {
+            "success": True,
+            "weather": weather_data
+        }
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=503,
+            detail=f"Weather service error: {str(e)}"
+        )
+
+
+# =========================================================
+# ROUTE ENDPOINT
+# =========================================================
+
+@app.get("/route")
+def route(
+    source: str,
+    destination: str
+):
+
+    try:
+
+        route_data = get_route(
+            source,
+            destination
+        )
+
+        return {
+            "success": True,
+            "route": route_data
+        }
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=503,
+            detail=f"Route service error: {str(e)}"
+        )
+
+
+# =========================================================
+# SMART TRAFFIC ASSISTANT
+# =========================================================
+
+@app.post("/assistant")
+def smart_assistant(request: TrafficRequest):
+
+    try:
+
+        # =================================================
+        # 1. ROUTE INFORMATION
+        # =================================================
+
+        try:
+
+            route_data = get_route(
+                request.source,
+                request.destination
+            )
+
+        except Exception as e:
+
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Unable to calculate route: "
+                    f"{str(e)}"
+                )
+            )
+
+
+        # =================================================
+        # 2. ROUTE WEATHER
+        # =================================================
+
+        try:
+
+            route_weather = get_route_weather(
+                request.source,
+                request.destination
+            )
+
+            source_weather = route_weather.get(
+                "source",
+                {}
+            )
+
+            destination_weather = route_weather.get(
+                "destination",
+                {}
+            )
+
+            # Use the source weather for traffic analysis
+            weather_name = source_weather.get(
+                "weather",
+                "Unavailable"
+            )
+
+        except Exception as e:
+
+            print(
+                f"Route weather unavailable: {e}"
+            )
+
+            source_weather = {
+                "city": request.source,
+                "temperature": None,
+                "feels_like": None,
+                "humidity": None,
+                "weather": "Unavailable",
+                "description": (
+                    "Live weather data is temporarily "
+                    "unavailable."
+                ),
+                "wind_speed": None,
+                "source": "Fallback"
+            }
+
+            destination_weather = {
+                "city": request.destination,
+                "temperature": None,
+                "feels_like": None,
+                "humidity": None,
+                "weather": "Unavailable",
+                "description": (
+                    "Live weather data is temporarily "
+                    "unavailable."
+                ),
+                "wind_speed": None,
+                "source": "Fallback"
+            }
+
+            weather_name = "Unavailable"
+
+
+        # =================================================
+        # 3. TRAFFIC ANALYSIS
+        # =================================================
+
+        traffic_result = analyze_traffic(
+
+            vehicles=request.vehicles,
+
+            avg_speed=request.avg_speed,
+
+            density=request.density,
+
+            weather=weather_name,
+
+            road_condition=request.road_condition
+        )
+
+
+        # =================================================
+        # 4. RAG RETRIEVAL
+        # =================================================
+
+        relevant_chunks = retrieve_relevant_chunks(
+
+            request.user_query,
+
+            top_k=3
+        )
+
+
+        context = "\n".join(
+
+            f"- {chunk}"
+
+            for chunk in relevant_chunks
+        )
+
+
+        # =================================================
+        # 5. GEMINI PROMPT
+        # =================================================
+
+        prompt = f"""
+You are a GenAI-powered Smart Traffic Assistant.
+
+Your job is to provide a safe and practical
+travel decision-support recommendation.
+
+IMPORTANT:
+You are NOT a live navigation service.
+Do NOT pretend to be Google Maps.
+Do NOT invent live traffic information.
+
+==================================================
+TRIP INFORMATION
+==================================================
+
+Source:
+{request.source}
+
+Destination:
+{request.destination}
+
+
+==================================================
+ROUTE INFORMATION
+==================================================
+
+Distance:
+{route_data.get("distance_km")} km
+
+Estimated Route Duration:
+{route_data.get("duration_hours")} hours
+
+Estimated Route Duration:
+{route_data.get("duration_minutes")} minutes
+
+IMPORTANT:
+The route duration is an estimated routing duration
+provided by OpenRouteService.
+
+It is NOT live traffic-adjusted travel time.
+
+
+==================================================
+SOURCE WEATHER
+==================================================
+
+{source_weather}
+
+
+==================================================
+DESTINATION WEATHER
+==================================================
+
+{destination_weather}
+
+
+==================================================
+TRAFFIC INFORMATION
+==================================================
+
+Traffic Level:
+{traffic_result.get("level")}
+
+Vehicles:
+{traffic_result.get("vehicles")}
+
+Average Speed:
+{traffic_result.get("avg_speed")} km/h
+
+Traffic Density:
+{request.density}
+
+Weather:
+{traffic_result.get("weather")}
+
+Road Condition:
+{traffic_result.get("road_condition")}
+
+Traffic Condition:
+{traffic_result.get("condition")}
+
+Alert:
+{traffic_result.get("alert")}
+
+
+==================================================
+RETRIEVED SAFETY KNOWLEDGE
+==================================================
+
+{context}
+
+
+==================================================
+USER QUESTION
+==================================================
+
+{request.user_query}
+
+
+==================================================
+RESPONSE REQUIREMENTS
+==================================================
+
+Provide a short, clear and practical recommendation.
+
+Include:
+
+1. Route information
+2. Traffic condition
+3. Source weather condition
+4. Destination weather condition
+5. Road condition
+6. Safety advice
+7. Whether the user should travel now
+8. Practical recommendation
+
+Rules:
+
+- Use the provided route information.
+- Use the provided traffic information.
+- Use the provided source weather information.
+- Use the provided destination weather information.
+- Use retrieved RAG knowledge when relevant.
+- Do not invent traffic data.
+- Do not invent weather data.
+- Do not invent travel time.
+- Do not claim traffic information is live.
+- Do not claim route duration includes live traffic.
+- Clearly mention when weather data is unavailable.
+- Clearly explain that this is a travel
+  decision-support recommendation.
+- Keep the response simple and practical.
+"""
+
+
+        # =================================================
+        # 6. GEMINI AI
+        # =================================================
+
+        ai_response = generate_response(prompt)
+
+
+        # =================================================
+        # 7. FINAL RESPONSE
+        # =================================================
+
+        return {
+
+            "success": True,
+
+            "trip": {
+
+                "source": request.source,
+
+                "destination": request.destination
+            },
+
+            "route": route_data,
+
+            "weather": source_weather,
+
+            "route_weather": {
+
+                "source": source_weather,
+
+                "destination": destination_weather
+            },
+
+            "traffic": traffic_result,
+
+            "rag_knowledge": relevant_chunks,
+
+            "ai_recommendation": ai_response
+        }
+
+
+    # =====================================================
+    # PRESERVE HTTP EXCEPTIONS
+    # =====================================================
+
+    except HTTPException:
+
+        raise
+
+
+    # =====================================================
+    # GENERAL ERROR
+    # =====================================================
+
+    except Exception as e:
+
+        raise HTTPException(
+
+            status_code=500,
+
+            detail=f"Assistant error: {str(e)}"
+        )
+
+
+# =========================================================
+# RUN DIRECTLY
+# =========================================================
+
+if __name__ == "__main__":
+
+    import uvicorn
+
+    uvicorn.run(
+
+        "src.main:app",
+
+        host="127.0.0.1",
+
+        port=8000,
+
+        reload=True
+    )
+#Traffic_analysis.py
+"""
+traffic_analysis.py
+
+Rule-based traffic analysis for the
+GenAI-Powered Smart Traffic Assistant.
+"""
+
+import pandas as pd
+
+
+def analyze_traffic(
+    vehicles: int,
+    avg_speed: float,
+    density: str,
+    weather: str,
+    road_condition: str
+) -> dict:
+
+    # =========================================================
+    # 1. INPUT VALIDATION
+    # =========================================================
+
+    if vehicles < 0:
+        raise ValueError("Vehicle count cannot be negative.")
+
+    if avg_speed < 0:
+        raise ValueError("Average speed cannot be negative.")
+
+    # Clean input values
+    density = str(density or "Low").strip().lower()
+    weather = str(weather or "Clear").strip().lower()
+    road_condition = str(road_condition or "Dry").strip().lower()
+
+    # =========================================================
+    # 2. TRAFFIC LEVEL
+    # =========================================================
+    #
+    # Density is the PRIMARY traffic indicator.
+    #
+    # Low    -> LOW
+    # Medium -> MEDIUM
+    # High   -> HIGH
+    #
+    # Speed is used as a supporting factor.
+    # Vehicle count alone will NOT make traffic HIGH.
+    # =========================================================
+
+    if density == "high":
+        level = "HIGH"
+
+    elif density == "medium":
+        level = "MEDIUM"
+
+    else:
+        level = "LOW"
+
+    # Very low speed indicates serious congestion.
+    if avg_speed < 20:
+        level = "HIGH"
+
+    # Low speed on an otherwise low-density road
+    # indicates moderate traffic.
+    elif avg_speed < 35 and level == "LOW":
+        level = "MEDIUM"
+
+    # Extremely high vehicle count can increase
+    # a MEDIUM condition to HIGH.
+    elif vehicles >= 500 and level == "MEDIUM":
+        level = "HIGH"
+
+    # =========================================================
+    # 3. WEATHER ANALYSIS
+    # =========================================================
+
+    bad_weather = weather in (
+        "rain",
+        "fog",
+        "storm",
+        "snow"
+    )
+
+    # =========================================================
+    # 4. ROAD ANALYSIS
+    # =========================================================
+
+    bad_road = road_condition in (
+        "damaged",
+        "under construction"
+    )
+
+    wet_road = road_condition in (
+        "wet",
+        "damp"
+    )
+
+    # =========================================================
+    # 5. CONDITION DESCRIPTION
+    # =========================================================
+
+    condition_parts = []
+
+    if level == "HIGH":
+        condition_parts.append(
+            "Severe congestion detected"
+        )
+
+    elif level == "MEDIUM":
+        condition_parts.append(
+            "Moderate traffic flow"
+        )
+
+    else:
+        condition_parts.append(
+            "Traffic flowing smoothly"
+        )
+
+    # Weather information
+    if bad_weather:
+        condition_parts.append(
+            f"reduced visibility/traction due to {weather}"
+        )
+
+    # Road information
+    if bad_road:
+        condition_parts.append(
+            f"{road_condition} road condition"
+        )
+
+    elif wet_road:
+        condition_parts.append(
+            "wet road surface"
+        )
+
+    condition = "; ".join(condition_parts) + "."
+
+    # =========================================================
+    # 6. ALERT GENERATION
+    # =========================================================
+
+    if level == "HIGH" and bad_weather:
+
+        alert = (
+            "High Congestion + Adverse Weather Alert — "
+            "exercise added caution."
+        )
+
+    elif level == "HIGH":
+
+        alert = (
+            "High Congestion Alert — "
+            "increased monitoring recommended."
+        )
+
+    elif level == "MEDIUM" and (
+        bad_weather or wet_road
+    ):
+
+        alert = (
+            "Moderate Traffic + Unfavorable Conditions Alert — "
+            "drive with caution."
+        )
+
+    elif bad_weather:
+
+        alert = (
+            "Adverse Weather Alert — "
+            "drive carefully and maintain safe distance."
+        )
+
+    elif bad_road:
+
+        alert = (
+            "Road Condition Alert — "
+            "consider an alternative route if available."
+        )
+
+    else:
+
+        alert = "No major traffic alert."
+
+    # =========================================================
+    # 7. RETURN RESULT
+    # =========================================================
+
+    return {
+        "level": level.upper(),
+        "avg_speed": avg_speed,
+        "vehicles": vehicles,
+        "density": density.title(),
+        "weather": weather.title(),
+        "road_condition": road_condition.title(),
+        "condition": condition,
+        "alert": alert,
+    }
+
+
+# =============================================================
+# LOAD TRAFFIC CSV
+
+#weather.py
+"""
+weather.py
+
+OpenWeatherMap integration for the Smart Traffic Assistant.
+
+Provides:
+- Current weather for one city
+- Weather for both source and destination cities
+"""
+
+import os
+import requests
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
+API_KEY = os.getenv("OPENWEATHER_API_KEY")
+
+WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
+
+
+def _fallback_weather(city: str) -> dict:
+    """Return safe fallback weather data."""
+
+    return {
+        "city": city,
+        "temperature": None,
+        "feels_like": None,
+        "humidity": None,
+        "weather": "Unavailable",
+        "description": "Live weather data is temporarily unavailable.",
+        "wind_speed": None,
+        "source": "Fallback"
+    }
+
+
+def get_weather(city: str) -> dict:
+    """
+    Get current weather information for a city
+    using OpenWeatherMap.
+    """
+
+    if not city or not city.strip():
+        raise ValueError("City name cannot be empty.")
+
+    city = city.strip()
+
+    # Reload environment variables
+    load_dotenv(override=True)
+
+    api_key = os.getenv("OPENWEATHER_API_KEY")
+
+    if not api_key or api_key == "YOUR_WEATHER_KEY":
+        print("OpenWeather API key is missing.")
+        return _fallback_weather(city)
+
+    params = {
+        "q": city,
+        "appid": api_key,
+        "units": "metric"
+    }
+
+    try:
+
+        response = requests.get(
+            WEATHER_URL,
+            params=params,
+            timeout=10
+        )
+
+        if response.status_code != 200:
+
+            print(
+                f"Weather API unavailable for {city}: "
+                f"{response.status_code}"
+            )
+
+            return _fallback_weather(city)
+
+        data = response.json()
+
+        return {
+            "city": data["name"],
+            "temperature": data["main"]["temp"],
+            "feels_like": data["main"]["feels_like"],
+            "humidity": data["main"]["humidity"],
+            "weather": data["weather"][0]["main"],
+            "description": data["weather"][0]["description"],
+            "wind_speed": data["wind"]["speed"],
+            "source": "OpenWeather"
+        }
+
+    except requests.RequestException as e:
+
+        print(f"Weather request failed for {city}: {e}")
+
+        return _fallback_weather(city)
+
+    except (KeyError, TypeError, ValueError) as e:
+
+        print(f"Invalid weather response for {city}: {e}")
+
+        return _fallback_weather(city)
+
+
+def get_route_weather(
+    source: str,
+    destination: str
+) -> dict:
+    """
+    Get weather for both the source and destination cities.
+    """
+
+    source_weather = get_weather(source)
+
+    destination_weather = get_weather(destination)
+
+    return {
+        "source": source_weather,
+        "destination": destination_weather
+    }
+
+
+if __name__ == "__main__":
+
+    city = input("Enter city name: ")
+
+    try:
+
+        weather = get_weather(city)
+
+        print("\nCURRENT WEATHER")
+        print("-------------------------")
+        print("City:", weather["city"])
+        print("Temperature:", weather["temperature"])
+        print("Feels Like:", weather["feels_like"])
+        print("Humidity:", weather["humidity"])
+        print("Weather:", weather["weather"])
+        print("Description:", weather["description"])
+        print("Wind Speed:", weather["wind_speed"])
+        print("Source:", weather["source"])
+
+    except Exception as e:
+
+        print("\nERROR:")
+        print(e)
+#route.py
+"""
+route.py
+
+Gets route information using OpenRouteService.
+"""
+
+import os
+import openrouteservice
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
+API_KEY = os.getenv("OPENROUTE_API_KEY")
+
+if not API_KEY:
+    raise ValueError(
+        "OPENROUTE_API_KEY not found. Check your .env file."
+    )
+
+
+def get_route(source: str, destination: str) -> dict:
+
+    if not source or not source.strip():
+        raise ValueError("Source cannot be empty.")
+
+    if not destination or not destination.strip():
+        raise ValueError("Destination cannot be empty.")
+
+    client = openrouteservice.Client(key=API_KEY)
+
+    # Search specifically within India
+    source_result = client.pelias_search(
+        text=source,
+        country="IND"
+    )
+
+    destination_result = client.pelias_search(
+        text=destination,
+        country="IND"
+    )
+
+    if not source_result["features"]:
+        raise RuntimeError(
+            f"Could not find source: {source}"
+        )
+
+    if not destination_result["features"]:
+        raise RuntimeError(
+            f"Could not find destination: {destination}"
+        )
+
+    source_coords = (
+        source_result["features"][0]
+        ["geometry"]["coordinates"]
+    )
+
+    destination_coords = (
+        destination_result["features"][0]
+        ["geometry"]["coordinates"]
+    )
+
+    print("Source coordinates:", source_coords)
+    print("Destination coordinates:", destination_coords)
+
+    # Driving route
+    route = client.directions(
+        coordinates=[
+            source_coords,
+            destination_coords
+        ],
+        profile="driving-car",
+        format="geojson"
+    )
+
+    summary = route["features"][0]["properties"]["summary"]
+
+    distance_km = summary["distance"] / 1000
+    duration_minutes = summary["duration"] / 60
+
+    return {
+        "source": source,
+        "destination": destination,
+        "distance_km": round(distance_km, 2),
+        "duration_minutes": round(duration_minutes, 1),
+        "duration_hours": round(
+            duration_minutes / 60, 2
+        )
+    }
+
+
+if __name__ == "__main__":
+
+    source = input("Enter source: ")
+    destination = input("Enter destination: ")
+
+    try:
+
+        result = get_route(
+            source,
+            destination
+        )
+
+        print("\nROUTE INFORMATION")
+        print("-------------------------")
+
+        print(
+            "Source:",
+            result["source"]
+        )
+
+        print(
+            "Destination:",
+            result["destination"]
+        )
+
+        print(
+            "Distance:",
+            result["distance_km"],
+            "km"
+        )
+
+        print(
+            "Duration:",
+            result["duration_hours"],
+            "hours"
+        )
+
+        print(
+            "Duration:",
+            result["duration_minutes"],
+            "minutes"
+        )
+
+    except Exception as e:
+
+        print("\nERROR:")
+        print(e)
+
+#llm.py
+"""
+llm.py
+Handles communication with the Gemini LLM API (current google-genai SDK).
+"""
+
+import os
+from dotenv import load_dotenv
+from google import genai
+
+load_dotenv()
+API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not API_KEY:
+    raise ValueError("GEMINI_API_KEY not found. Check your .env file.")
+
+client = genai.Client(api_key=API_KEY)
+
+MODEL_NAME = "gemini-3.6-flash"
+
+
+def generate_response(prompt: str) -> str:
+    """
+    Send a prompt to Gemini and return the generated text.
+    """
+    if not prompt or not prompt.strip():
+        raise ValueError("Prompt cannot be empty.")
+
+    try:
+        response = client.models.generate_content(
+            model=MODEL_NAME,
+            contents=prompt,
+        )
+        return response.text
+    except Exception as e:
+        return f"Error generating response: {e}"
+
+
+if __name__ == "__main__":
+    test_prompt = "In one sentence, explain why heavy rain increases traffic risk."
+    print(generate_response(test_prompt))
+
+#rag.py
+"""
+rag.py
+
+Builds a small vector knowledge base from the knowledge_base/ text files
+and retrieves the most relevant chunks for a given user question.
+"""
+
+import os
+import glob
+import chromadb
+
+# Persistent local vector database (saved to disk in chroma_db/ folder)
+chroma_client = chromadb.PersistentClient(path="chroma_db")
+
+# A "collection" is like a table in the vector database
+collection = chroma_client.get_or_create_collection(name="traffic_knowledge")
+
+
+def load_knowledge_base(folder_path: str = "knowledge_base") -> list[dict]:
+    """
+    Read all .txt files in the knowledge_base folder and split them
+    into individual chunks (one chunk per line).
+    """
+    chunks = []
+    txt_files = glob.glob(os.path.join(folder_path, "*.txt"))
+
+    if not txt_files:
+        raise FileNotFoundError(f"No .txt files found in {folder_path}")
+
+    for file_path in txt_files:
+        file_name = os.path.basename(file_path)
+        with open(file_path, "r", encoding="utf-8") as f:
+            lines = [line.strip() for line in f.readlines() if line.strip()]
+            for i, line in enumerate(lines):
+                chunks.append({
+                    "id": f"{file_name}_{i}",
+                    "text": line,
+                    "source": file_name,
+                })
+    return chunks
+
+
+def build_vector_store():
+    """
+    Embed all knowledge base chunks and store them in ChromaDB.
+    Only needs to run once (or when knowledge base content changes).
+    """
+    chunks = load_knowledge_base()
+
+    # ChromaDB automatically handles embedding using its default model
+    collection.upsert(
+        ids=[c["id"] for c in chunks],
+        documents=[c["text"] for c in chunks],
+        metadatas=[{"source": c["source"]} for c in chunks],
+    )
+    print(f"Vector store built with {len(chunks)} chunks.")
+
+
+def retrieve_relevant_chunks(query: str, top_k: int = 3) -> list[str]:
+    """
+    Given a user question, return the top_k most relevant knowledge
+    base chunks.
+    """
+    if not query or not query.strip():
+        raise ValueError("Query cannot be empty.")
+
+    results = collection.query(
+        query_texts=[query],
+        n_results=top_k,
+    )
+
+    documents = results.get("documents", [[]])[0]
+    return documents
+
+
+if __name__ == "__main__":
+    # First run: build the vector store
+    build_vector_store()
+
+    # Then test retrieval
+    test_query = "What should be done during an accident?"
+    relevant = retrieve_relevant_chunks(test_query)
+
+    print(f"\nQuery: {test_query}")
+    print("Top relevant chunks:")
+    for chunk in relevant:
+        print("-", chunk)
+
+#knowledge_base/
+#accident_response.txt
+In the event of an accident, keep emergency access lanes clear and direct approaching traffic away from the incident site.
+First responders should be alerted immediately, and traffic should be rerouted around the accident zone until it is cleared.
+Bystanders should not obstruct emergency vehicles or personnel attending to an accident.
+Accident-prone junctions with high traffic density and poor weather require 
+heightened monitoring and faster response protocols.
+
+#congestion_management.txt
+High traffic density with low average speed indicates congestion; traffic signals should be adjusted to optimize flow at the affected junction.
+During severe congestion, alternate route suggestions should be communicated to reduce load on the primary road.
+Congestion combined with adverse weather requires increased monitoring and may require manual traffic control at key junctions.
+Staggering signal timings at consecutive junctions can reduce stop-and-go congestion patterns.
+
+#emergency_procedure.txt
+During emergencies, traffic signals may be overridden to prioritize emergency vehicle movement through the junction.
+Evacuation routes should remain clear of congestion; non-essential traffic should be diverted during emergency operations.
+Emergency traffic procedures require coordination between traffic control and emergency services to minimize response time.
+In severe weather emergencies, road closures may be necessary if conditions make travel unsafe.
+
+#road_safety.txt
+Wet or damaged road surfaces significantly increase stopping distance and risk of skidding; drivers should reduce speed and avoid sudden braking.
+Reduced visibility from fog or heavy rain requires headlights to be turned on and following distance increased.
+Potholes and damaged roads should be reported to traffic authorities and marked with warning signs where possible.
+Pedestrian crossings require extra caution during high traffic density and poor weather conditions.
+
+#traffic_rules.txtVehicles must maintain a safe following distance of at least 2 seconds behind the vehicle ahead, increasing to 4 seconds in wet or low-visibility conditions.
+Speed limits must be reduced during rain, fog, or poor road conditions to maintain vehicle control and stopping distance.
+Drivers must yield to emergency vehicles and pull over safely to allow them to pass.
+Lane discipline must be maintained during high-density traffic to prevent bottlenecks at merge points.
+
+#data
+#traffic_data.csv
+vehicles,avg_speed,density,weather,road_condition
+70,15,High,Rain,Wet
+20,45,Low,Clear,Dry
+55,25,Medium,Fog,Damp
+90,8,High,Rain,Wet
+15,50,Low,Clear,Dry
+40,30,Medium,Clear,Dry
+80,12,High,Fog,Wet
+30,35,Low,Rain,Wet
+65,18,Medium,Rain,Damp
+95,6,High,Fog,Damaged
+
+#requirements.txt
+fastapi
+uvicorn[standard]
+pandas
+requests
+python-dotenv
+google-genai
+chromadb
+
+#.gitignore
+venv/
+__pycache__/
+*.pyc
+.env
+chroma_db/
+
+#README_md
+1. Project Title
+
+GenAI-Powered Smart Traffic Assistant
+
+An intelligent travel decision-support system for traffic, route, weather, road-condition, and safety analysis.
+
+2. Project Description
+
+The GenAI-Powered Smart Traffic Assistant is an AI-based travel decision-support application that helps users evaluate journey conditions before travelling. The system combines route information, traffic analysis, weather conditions, road conditions, and road-safety knowledge into a single interactive dashboard.
+
+The user provides trip details such as source, destination, vehicle count, average speed, traffic density, road condition, travel date, and weather location. The backend analyzes these inputs, obtains route and weather information through external APIs, retrieves relevant safety information using Retrieval-Augmented Generation (RAG), and uses Google Gemini Generative AI to generate a practical travel recommendation.
+
+The final dashboard provides route details, traffic status, weather information, road conditions, safety alerts, RAG-retrieved knowledge, and a final travel decision: Travel Recommended, Travel With Caution, or Travel Not Recommended.
+
+3. Problem Statement
+
+Travelers often need to use multiple applications to check different aspects of a journey, such as maps for routes, weather applications for weather conditions, traffic services for congestion, and separate sources for road-safety information.
+
+This fragmented approach makes it difficult to obtain a single consolidated view of travel conditions. Furthermore, raw information from different sources may require users to interpret the conditions themselves.
+
+Therefore, the project aims to develop an AI-powered Smart Traffic Assistant that combines route, traffic, weather, road-condition, and safety information and uses Generative AI to provide an understandable travel recommendation through a single dashboard.
+
+4. Objectives
+
+The main objectives of the project are:
+
+To develop a centralized dashboard for travel and traffic analysis.
+To analyze traffic conditions using vehicle count, average speed, and traffic density.
+To obtain route distance and estimated travel duration.
+To retrieve weather information for relevant locations.
+To incorporate road conditions into travel-risk analysis.
+To implement RAG for retrieving relevant road-safety knowledge.
+To integrate Google Gemini Generative AI for generating travel recommendations.
+To classify travel conditions into:
+🟢 Travel Recommended
+🟡 Travel With Caution
+🔴 Travel Not Recommended
+To provide practical and understandable safety recommendations.
+To reduce the need to use multiple separate applications for basic travel-condition assessment.
+5. Features
+🗺️ Trip Information
+
+The user can enter:
+
+Source
+Destination
+Travel date
+Departure time
+Vehicle count
+Average speed
+Traffic density
+Road condition
+Weather city
+🚗 Traffic Analysis
+
+The system analyzes traffic and classifies it as:
+
+LOW
+MEDIUM
+HIGH
+
+It also displays:
+
+Vehicle count
+Average speed
+Traffic density
+Traffic condition
+Traffic alerts
+🛣️ Route Analysis
+
+The system provides:
+
+Source
+Destination
+Distance
+Estimated travel duration
+🌦️ Weather Analysis
+
+The dashboard displays weather information such as:
+
+Temperature
+Feels-like temperature
+Humidity
+Wind speed
+Weather description
+🛤️ Road Condition Analysis
+
+The system considers conditions such as:
+
+Dry
+Wet
+Damaged
+Under Construction
+📚 RAG-Based Safety Knowledge
+
+The system retrieves relevant information from a safety knowledge base containing topics such as:
+
+Road safety
+Traffic rules
+Accident response
+Emergency procedures
+Congestion management
+🤖 Generative AI Recommendation
+
+Gemini uses the collected information and retrieved safety knowledge to generate a natural-language recommendation.
+
+🚦 Travel Decision
+
+The system provides three decision levels:
+
+🟢 Travel Recommended
+
+Conditions are generally favorable.
+
+🟡 Travel With Caution
+
+Travel is possible but additional caution is recommended.
+
+🔴 Travel Not Recommended
+
+Conditions are unfavorable and delaying the journey may be advisable.
+
+6. Architecture / Workflow
+                    USER
+                      │
+                      ▼
+             ┌─────────────────┐
+             │    Frontend     │
+             │ HTML/CSS/JS     │
+             └────────┬────────┘
+                      │
+                      ▼
+             ┌─────────────────┐
+             │    FastAPI      │
+             │    Backend      │
+             └────────┬────────┘
+                      │
+          ┌───────────┼───────────┐
+          │           │           │
+          ▼           ▼           ▼
+     Traffic       Route       Weather
+     Analysis       API          API
+          │           │           │
+          └───────────┼───────────┘
+                      │
+                      ▼
+             ┌─────────────────┐
+             │ Structured Data │
+             └────────┬────────┘
+                      │
+                      ▼
+             ┌─────────────────┐
+             │      RAG        │
+             │   ChromaDB      │
+             └────────┬────────┘
+                      │
+                      ▼
+             ┌─────────────────┐
+             │  Gemini LLM     │
+             │ Generative AI   │
+             └────────┬────────┘
+                      │
+                      ▼
+             ┌─────────────────┐
+             │ AI Recommendation│
+             └────────┬────────┘
+                      │
+                      ▼
+             ┌─────────────────┐
+             │    Dashboard    │
+             │ Route / Traffic │
+             │ Weather / Safety│
+             └─────────────────┘
+Workflow
+User Input
+    ↓
+FastAPI Backend
+    ↓
+Traffic Analysis
+    ↓
+Route + Weather Data
+    ↓
+RAG Knowledge Retrieval
+    ↓
+Gemini AI
+    ↓
+Travel Recommendation
+    ↓
+Dashboard Output
+7. Technology Stack
+Category	Technology
+Frontend	HTML, CSS, JavaScript
+Backend	Python, FastAPI
+Server	Uvicorn
+Generative AI	Google Gemini
+RAG	ChromaDB
+Route Information	OpenRouteService
+Weather Information	OpenWeatherMap
+Data Processing	Pandas
+API Requests	Requests
+Environment Variables	python-dotenv
+Development Environment	VS Code
+Version Control	Git/GitHub
+8. How to Install
+Step 1 — Clone the repository
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+
+Then:
+
+cd smart_traffic_assistant
+Step 2 — Create a virtual environment
+python -m venv venv
+Step 3 — Activate the virtual environment
+
+For Windows PowerShell:
+
+.\venv\Scripts\Activate.ps1
+Step 4 — Install dependencies
+pip install -r requirements.txt
+Step 5 — Create .env
+
+Create a .env file in the project root:
+
+GEMINI_API_KEY=your_gemini_api_key
+OPENWEATHER_API_KEY=your_openweather_api_key
+OPENROUTESERVICE_API_KEY=your_openrouteservice_api_key
+
+Do not upload .env to GitHub.
+
+9. How to Run
+
+Your project uses separate terminals.
+
+Terminal 1 — Backend
+cd C:\Users\akhil\Downloads\smart_traffic_assistant
+.\venv\Scripts\Activate.ps1
+uvicorn src.main:app --reload
+
+Backend:
+
+http://127.0.0.1:8000
+
+FastAPI documentation:
+
+http://127.0.0.1:8000/docs
+Terminal 2 — Frontend
+cd C:\Users\akhil\Downloads\smart_traffic_assistant\frontend
+python -m http.server 5500
+Terminal 3 — Open Dashboard
+start http://127.0.0.1:5500
+
+The Smart Traffic Assistant dashboard will open in your browser.
