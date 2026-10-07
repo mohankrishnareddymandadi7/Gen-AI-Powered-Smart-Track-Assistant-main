@@ -1,5 +1,10 @@
 import streamlit as st
 from datetime import datetime
+import json
+import math
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title="GenAI Smart Traffic Assistant", page_icon="🚦", layout="wide")
 
@@ -226,25 +231,101 @@ CITIES = {
     "Chennai": {"weather": "Humid", "temp": 30.8, "feels_like": 33.1, "humidity": 74, "wind_speed": 7.1, "description": "Humid conditions"},
 }
 
-ROUTE_DATA = {
-    ("Hyderabad", "Mumbai"): {"distance_km": 710.3, "duration_hours": 8.0},
-    ("Mumbai", "Hyderabad"): {"distance_km": 710.3, "duration_hours": 8.0},
-    ("Hyderabad", "Delhi"): {"distance_km": 1180.6, "duration_hours": 14.5},
-    ("Delhi", "Hyderabad"): {"distance_km": 1180.6, "duration_hours": 14.5},
-    ("Bengaluru", "Chennai"): {"distance_km": 345.0, "duration_hours": 6.5},
-    ("Chennai", "Bengaluru"): {"distance_km": 345.0, "duration_hours": 6.5},
+CITY_COORDINATES = {
+    "Hyderabad": (78.4867, 17.3850),
+    "Mumbai": (72.8777, 19.0760),
+    "Delhi": (77.2090, 28.6139),
+    "Bengaluru": (77.5946, 12.9716),
+    "Chennai": (80.2707, 13.0827),
 }
 
 
-def get_route_data(source, destination):
-    key = (source, destination)
-    if key in ROUTE_DATA:
-        return ROUTE_DATA[key]
-    distance = 420.0
-    duration = 7.5
-    if source == destination:
-        return {"distance_km": 0.0, "duration_hours": 0.0}
-    return {"distance_km": distance, "duration_hours": duration}
+class RouteLookupError(Exception):
+    pass
+
+
+def get_live_route(source, destination):
+    start_lon, start_lat = CITY_COORDINATES[source]
+    end_lon, end_lat = CITY_COORDINATES[destination]
+    url = (
+        "https://router.project-osrm.org/route/v1/driving/"
+        f"{start_lon},{start_lat};{end_lon},{end_lat}"
+        "?overview=full&geometries=geojson"
+    )
+    request = Request(url, headers={"User-Agent": "GenAI-Smart-Traffic-Assistant"})
+
+    try:
+        with urlopen(request, timeout=15) as response:
+            route_response = json.load(response)
+    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
+        raise RouteLookupError(f"Unable to contact the routing service: {error}") from error
+
+    routes = route_response.get("routes")
+    if route_response.get("code") != "Ok" or not routes:
+        raise RouteLookupError(
+            f"The routing service could not find a driving route ({route_response.get('code', 'unknown error')})."
+        )
+
+    route = routes[0]
+    coordinates = route.get("geometry", {}).get("coordinates")
+    if not isinstance(coordinates, list) or len(coordinates) < 2:
+        raise RouteLookupError("The routing service returned no usable route geometry.")
+    if any(
+        not isinstance(point, list)
+        or len(point) < 2
+        or not all(
+            isinstance(value, (int, float)) and math.isfinite(value)
+            for value in point[:2]
+        )
+        for point in coordinates
+    ):
+        raise RouteLookupError("The routing service returned invalid route coordinates.")
+
+    return {
+        "distance_km": route["distance"] / 1000,
+        "duration_hours": route["duration"] / 3600,
+        "coordinates": coordinates,
+    }
+
+
+def build_route_map(route, source, destination):
+    coordinates = json.dumps(route["coordinates"], separators=(",", ":"))
+    source_label = json.dumps(source)
+    destination_label = json.dumps(destination)
+    return f"""
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+            <style>
+              html, body, #map {{ height: 100%; margin: 0; }}
+              .leaflet-container {{ background: #0d1f2e; }}
+            </style>
+          </head>
+          <body>
+            <div id="map"></div>
+            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+            <script>
+              const coordinates = {coordinates};
+              const map = L.map("map");
+              L.tileLayer("https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png", {{
+                maxZoom: 19,
+                attribution: "&copy; OpenStreetMap contributors"
+              }}).addTo(map);
+              const route = L.polyline(
+                coordinates.map(([longitude, latitude]) => [latitude, longitude]),
+                {{ color: "#1687e8", weight: 6, opacity: 0.9 }}
+              ).addTo(map);
+              L.marker([coordinates[0][1], coordinates[0][0]])
+                .addTo(map).bindPopup({source_label});
+              L.marker([coordinates[coordinates.length - 1][1], coordinates[coordinates.length - 1][0]])
+                .addTo(map).bindPopup({destination_label});
+              map.fitBounds(route.getBounds(), {{ padding: [24, 24] }});
+            </script>
+          </body>
+        </html>
+    """
 
 
 def build_knowledge_items():
@@ -256,7 +337,7 @@ def build_knowledge_items():
 
 
 def analyze_trip(source, destination, vehicle_count, avg_speed, traffic_density, road_condition, weather_city):
-    route = get_route_data(source, destination)
+    route = get_live_route(source, destination)
     weather = CITIES.get(weather_city, CITIES["Hyderabad"])
     risk_score = 0
 
@@ -339,7 +420,11 @@ with st.container():
         st.markdown('</div>', unsafe_allow_html=True)
 
     if submit:
-        result = analyze_trip(source, destination, vehicle_count, avg_speed, traffic_density, road_condition, weather_city)
+        try:
+            result = analyze_trip(source, destination, vehicle_count, avg_speed, traffic_density, road_condition, weather_city)
+        except RouteLookupError as error:
+            st.error(f"Could not load the live driving route. {error}")
+            st.stop()
 
         status_color = {"Travel with caution": "#f5c86a", "Proceed with attention": "#f0b56d", "Travel is smooth": "#7ae0ba"}
 
@@ -383,6 +468,10 @@ with st.container():
                 """,
                 unsafe_allow_html=True,
             )
+
+        st.markdown('<div class="section-title" style="margin-top: 1.2rem"><span class="icon"></span>Live Road Route</div>', unsafe_allow_html=True)
+        st.caption("Route and distance are fetched from OpenStreetMap-based routing. Live traffic conditions are not included.")
+        components.html(build_route_map(result["route"], source, destination), height=480, scrolling=False)
 
         col_c, col_d = st.columns(2)
         with col_c:
