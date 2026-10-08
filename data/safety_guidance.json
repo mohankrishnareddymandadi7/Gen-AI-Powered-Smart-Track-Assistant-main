@@ -1,0 +1,74 @@
+[
+  {
+    "id": "protective-equipment",
+    "title": "Use the right restraints and protective equipment",
+    "advice": "All vehicle occupants should wear seat belts. Two-wheeler riders should wear a properly fastened helmet.",
+    "tags": ["always"],
+    "source_title": "WHO: Road traffic injuries",
+    "source_url": "https://www.who.int/news-room/fact-sheets/detail/road-traffic-injuries"
+  },
+  {
+    "id": "avoid-distraction",
+    "title": "Keep attention on the road",
+    "advice": "Do not handle or read a phone while driving. Set navigation before departure and stop somewhere safe before changing it.",
+    "tags": ["always"],
+    "source_title": "WHO: Road traffic injuries",
+    "source_url": "https://www.who.int/news-room/fact-sheets/detail/road-traffic-injuries"
+  },
+  {
+    "id": "speed-and-following-distance",
+    "title": "Adapt speed and following distance",
+    "advice": "Follow posted speed limits and increase your following distance when visibility, traffic, or road grip is reduced.",
+    "tags": ["always", "congestion", "rain", "fog", "night"],
+    "source_title": "WHO: Road traffic injuries",
+    "source_url": "https://www.who.int/news-room/fact-sheets/detail/road-traffic-injuries"
+  },
+  {
+    "id": "wet-weather",
+    "title": "Allow for wet-road conditions",
+    "advice": "If rain is present, reduce speed, leave extra space for braking, and avoid sudden steering or braking.",
+    "tags": ["rain", "wet"],
+    "source_title": "Ministry of Road Transport and Highways: Road Safety",
+    "source_url": "https://morth.nic.in/road-safety"
+  },
+  {
+    "id": "fog-visibility",
+    "title": "Treat poor visibility as a reason to slow down",
+    "advice": "In fog, use low-beam headlights, avoid abrupt manoeuvres, and stop at a safe place if you cannot see far enough to drive safely.",
+    "tags": ["fog"],
+    "source_title": "Ministry of Road Transport and Highways: Road Safety",
+    "source_url": "https://morth.nic.in/road-safety"
+  },
+  {
+    "id": "flooded-roads",
+    "title": "Do not enter a flooded road",
+    "advice": "Do not drive through floodwater or around a road-closure barrier. Turn back and use an official diversion.",
+    "tags": ["flooded", "flooding"],
+    "source_title": "Ministry of Road Transport and Highways: Road Safety",
+    "source_url": "https://morth.nic.in/road-safety"
+  },
+  {
+    "id": "official-weather-alerts",
+    "title": "Check official weather alerts",
+    "advice": "Before departure, check current India Meteorological Department warnings for the places and time you expect to travel.",
+    "tags": ["rain", "fog", "thunderstorm", "snow", "flooding"],
+    "source_title": "India Meteorological Department",
+    "source_url": "https://mausam.imd.gov.in/"
+  },
+  {
+    "id": "incident-advisory",
+    "title": "Follow incident controls, not the map alone",
+    "advice": "If an incident or closure is reported, obey police and road-authority directions and confirm a safe diversion before continuing.",
+    "tags": ["incident", "congestion", "high-risk"],
+    "source_title": "Ministry of Road Transport and Highways: Road Safety",
+    "source_url": "https://morth.nic.in/road-safety"
+  },
+  {
+    "id": "night-driving",
+    "title": "Plan breaks for night driving",
+    "advice": "If you feel drowsy, stop at a safe location and rest; do not rely on speed or open windows to stay alert.",
+    "tags": ["night"],
+    "source_title": "Ministry of Road Transport and Highways: Road Safety",
+    "source_url": "https://morth.nic.in/road-safety"
+  }
+]
